@@ -63,6 +63,8 @@ int main(void)
   RS485_Init();
   ADC_Init();
   MOSPWM_Init();
+  MOSPWM_SetOutputCompare(96);
+  MOSPWM_Start();
   while (1)
   {
     while(buff_rxlen == 0);

@@ -63,7 +63,7 @@ void MOSPWM_Init()
     sPWMConfig.OCFastMode   = TIM_OCFAST_DISABLE;            /* 关闭快速模式 */
     sPWMConfig.Pulse = PULSE_DEFAULT;                        /* 默认占空比 */
 
-    HAL_TIM_PWM_ConfigChannel(&htim_led, &sPWMConfig, TIM_CHANNEL_1);
+    HAL_TIM_PWM_ConfigChannel(&htim_led, &sPWMConfig, PWM_TIM_CHANNEL);
 }
 
 void MOSPWM_Start()
@@ -89,12 +89,12 @@ int MOSPWM_IsEnable(int LEDx)
   }
 }
 
-void LED_SetOutputCompare(uint16_t compare)
+void MOSPWM_SetOutputCompare(uint16_t compare)
 {
   __HAL_TIM_SET_COMPARE(&htim_led, PWM_TIM_CHANNEL, compare);
 }
 
-uint32_t LED_GetOutputCompare()
+uint32_t MOSPWM_GetOutputCompare()
 {
   return __HAL_TIM_GET_COMPARE(&htim_led, PWM_TIM_CHANNEL);
 }
