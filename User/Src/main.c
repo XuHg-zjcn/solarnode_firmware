@@ -35,6 +35,8 @@
 #include "adc.h"
 #include "manchester.h"
 #include "command.h"
+#include "dcdc.h"
+#include "py32f0xx_ll_adc.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -61,9 +63,9 @@ int main(void)
   APP_SystemClockConfig(); 
 
   RS485_Init();
-  ADC_Init();
   MOSPWM_Init();
-  MOSPWM_SetOutputCompare(96);
+  ADC_Init();
+  DCDC_Init();
   MOSPWM_Start();
   while (1)
   {

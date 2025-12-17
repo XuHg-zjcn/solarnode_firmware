@@ -18,6 +18,8 @@
 #ifndef ADC_H
 #define ADC_H
 
+#include <stdint.h>
+
 #define GPIO_PORT_ADC_VBUS    GPIOA
 #define LL_GPIO_PIN_ADC_VBUS  LL_GPIO_PIN_1
 #define LL_ADC_CHANNEL_VBUS   LL_ADC_CHANNEL_1
@@ -36,6 +38,13 @@
 
 #define ADC_BUFFSAMPS         (2)
 #define ADC_BUFFSIZE          (4*2)
+
+typedef struct{
+  uint16_t vbus;
+  uint16_t ibus;
+  uint16_t vslr;
+  uint16_t islr;
+}ADCSamp_t;
 
 void ADC_Init();
 void ADC_DMA_TC_Callback();

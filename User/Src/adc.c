@@ -51,6 +51,7 @@
 #include "py32f0xx_ll_tim.h"
 #include "py32f0xx_ll_dma.h"
 #include "py32f0xx_ll_utils.h"
+#include "dcdc.h"
 
 uint16_t adc_buff[ADC_BUFFSIZE];
 uint16_t adc_vbus = 0;
@@ -237,6 +238,9 @@ static void ADC_DmaConfig(void)
   //已经在其他代码中开启此中断
   //NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
   //NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+
+  /* DMA interrupt configuration */
+  LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_ADC);
 }
 
 void ADC_Init()
@@ -247,20 +251,15 @@ void ADC_Init()
   ADC_AdcConfig();
   ADC_AdcEnable();
   ADC_TimerInit();
+  LL_ADC_REG_StartConversion(ADC1);
 }
 
 void ADC_DMA_TC_Callback()
 {
-  adc_vbus = adc_buff[4];
-  adc_ibus = adc_buff[5];
-  adc_islr = adc_buff[6];
-  adc_vslr = adc_buff[7];
+  DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[4]));
 }
 
 void ADC_DMA_HT_Callback()
 {
-  adc_vbus = adc_buff[0];
-  adc_ibus = adc_buff[1];
-  adc_islr = adc_buff[2];
-  adc_vslr = adc_buff[3];
+  DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[0]));
 }
