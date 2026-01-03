@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 
+void     MOSPWM_PreInit();
 void     MOSPWM_Init();
 void     MOSPWM_Start();
 void     MOSPWM_Stop();

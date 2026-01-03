@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
 #include "mos_pwm.h"
+#include "py32f0xx_ll_bus.h"
+#include "py32f0xx_ll_gpio.h"
 #include "py32f0xx_ll_tim.h"
 #include "py32f0xx.h"
 
@@ -25,10 +27,17 @@
 #define PWM_TIM_CHANNEL  TIM_CHANNEL_3
 
 #define PERIOD          (192)
-#define PULSE_DEFAULT   (0)
+#define PULSE_DEFAULT   (192)
 
 TIM_HandleTypeDef   htim_led;
 TIM_OC_InitTypeDef  sPWMConfig = {0};
+
+void MOSPWM_PreInit()
+{
+  LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
+  LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_0);
+  LL_GPIO_SetPinMode(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
+}
 
 //TODO: 此文件全部代码改为LL库
 void MOSPWM_Init()

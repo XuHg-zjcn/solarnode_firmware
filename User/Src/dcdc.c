@@ -27,10 +27,12 @@ uint32_t i = 0;
 void DCDC_Init()
 {
   mode = DCDC_Mode_CV;
-  pi_cv.k_p = 4534;    // 0.02 / 55.5 * 192 * 2**16
-  pi_cv.k_i = 5804;    // 1e-4 / 55.5 * 192 * 2**24
-  pi_cv.target = 2664; // 55.5 * 48
-  pi_cv.out_max = 128; // 2/3 * 192
+  // 22/(470+22)/3.3*4096 = 55.5
+  // 以下数据通过多次实验调整得到
+  pi_cv.k_p = 3000;  // k_p / 55.5 * 192 * 2**16
+  pi_cv.k_i = 50;    // k_i / 55.5 * 192 * 2**24
+  pi_cv.target = 1000; // 55.5 * vout
+  pi_cv.out_max = 100; // maxduty * 192
   pi_cv.s = 0;
 }
 
@@ -42,5 +44,5 @@ void DCDC_ADC_update_callback(ADCSamp_t *data)
   }else{
     pwm_value = 0;
   }
-  MOSPWM_SetOutputCompare(pwm_value);
+  MOSPWM_SetOutputCompare(192-pwm_value);
 }

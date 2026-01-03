@@ -56,6 +56,7 @@ static void APP_SystemClockConfig(void);
   */
 int main(void)
 {
+  MOSPWM_PreInit();
   /* Reset of all peripherals, Initializes the Systick. */
   HAL_Init();
   
