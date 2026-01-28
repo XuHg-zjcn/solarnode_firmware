@@ -18,6 +18,7 @@
 #ifndef DCDC_H
 #define DCDC_H
 
+#include <stdint.h>
 #include "adc.h"
 
 typedef enum{
@@ -26,6 +27,13 @@ typedef enum{
   DCDC_Mode_CC,     //恒定电流
   DCDC_Mode_MPPT,   //最大功率追踪
 }DCDC_Mode_t;
+
+typedef struct{
+  uint16_t cv_targ;
+  uint16_t cc_targ;
+  uint16_t v_prot;
+  uint16_t i_prot;
+}DCDC_Param_t;
 
 void DCDC_Init();
 void DCDC_ADC_update_callback(ADCSamp_t *data);

@@ -36,3 +36,11 @@ uint32_t PI_update(PI_data *data, uint32_t curr)
     return out;
   }
 }
+
+uint32_t PI_set_s(PI_data *data, uint32_t curr, uint32_t out)
+{
+  int32_t err = data->target - curr;
+  int32_t out_p = (((int32_t)(err * data->k_p))>>16);
+  data->s = ((out - out_p)<<16);
+  return data->s;
+}

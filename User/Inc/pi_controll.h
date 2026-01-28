@@ -29,5 +29,6 @@ typedef struct{
 }PI_data;
 
 uint32_t PI_update(PI_data *data, uint32_t curr);
+uint32_t PI_set_s(PI_data *data, uint32_t curr, uint32_t out);
 
 #endif

@@ -21,7 +21,9 @@
 #include "mos_pwm.h"
 
 static DCDC_Mode_t mode; //目前只支持CV（恒压）
+static DCDC_Param_t param;
 PI_data pi_cv;
+PI_data pi_cc;
 uint32_t i = 0;
 
 void DCDC_Init()
@@ -34,13 +36,35 @@ void DCDC_Init()
   pi_cv.target = 1000; // 55.5 * vout
   pi_cv.out_max = 100; // maxduty * 192
   pi_cv.s = 0;
+
+  pi_cc.k_p = 1000;
+  pi_cc.k_i = 10;
+  pi_cc.target = 1000;
+  pi_cc.out_max = 100;
+  pi_cc.s = 0;
 }
 
 void DCDC_ADC_update_callback(ADCSamp_t *data)
 {
   uint16_t pwm_value;
+  if((data->vbus > param.v_prot) || (data->ibus > param.i_prot)){
+    mode = DCDC_Mode_Stop;
+  }
+  if((mode == DCDC_Mode_CC) && (data->ibus < param.cc_targ) && (data->vbus > param.cv_targ)){
+    mode = DCDC_Mode_CV;
+    uint32_t old_pwm = MOSPWM_GetOutputCompare();
+    PI_set_s(&pi_cv, data->vbus, old_pwm);
+  }else if((mode == DCDC_Mode_CV) && (data->ibus > param.cc_targ) && (data->vbus < param.cv_targ)){
+    mode = DCDC_Mode_CC;
+    uint32_t old_pwm = MOSPWM_GetOutputCompare();
+    PI_set_s(&pi_cc, data->ibus, old_pwm);
+  }
   if(mode == DCDC_Mode_CV){
     pwm_value = PI_update(&pi_cv, data->vbus);
+  }else if(mode == DCDC_Mode_CC){
+    pwm_value = PI_update(&pi_cc, data->ibus);
+  }else if(mode == DCDC_Mode_MPPT){
+    pwm_value = 0;
   }else{
     pwm_value = 0;
   }
