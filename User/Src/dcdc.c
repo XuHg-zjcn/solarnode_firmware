@@ -24,24 +24,39 @@ static DCDC_Mode_t mode; //目前只支持CV（恒压）
 static DCDC_Param_t param;
 PI_data pi_cv;
 PI_data pi_cc;
-uint32_t i = 0;
+volatile uint32_t update_count = 0;
+volatile ADCSamp_t last_samp;
 
 void DCDC_Init()
 {
-  mode = DCDC_Mode_CV;
+  mode = DCDC_Mode_Stop;
   // 22/(470+22)/3.3*4096 = 55.5
   // 以下数据通过多次实验调整得到
   pi_cv.k_p = 3000;  // k_p / 55.5 * 192 * 2**16
   pi_cv.k_i = 50;    // k_i / 55.5 * 192 * 2**24
-  pi_cv.target = 1000; // 55.5 * vout
+  pi_cv.target = 0; // 55.5 * vout
   pi_cv.out_max = 100; // maxduty * 192
   pi_cv.s = 0;
 
   pi_cc.k_p = 1000;
   pi_cc.k_i = 10;
-  pi_cc.target = 1000;
+  pi_cc.target = 0;
   pi_cc.out_max = 100;
   pi_cc.s = 0;
+}
+
+void DCDC_Soft_Start()
+{
+  mode = DCDC_Mode_Stop;
+  uint32_t c0 = update_count;
+  HAL_Delay(10);
+  while(update_count != c0);
+  pi_cv.target = last_samp.vbus;
+  mode = DCDC_Mode_CV;
+  while(pi_cv.target < param.cv_targ){
+    HAL_Delay(1);
+    pi_cv.target += 1;
+  }
 }
 
 void DCDC_ADC_update_callback(ADCSamp_t *data)
@@ -69,4 +84,6 @@ void DCDC_ADC_update_callback(ADCSamp_t *data)
     pwm_value = 0;
   }
   MOSPWM_SetOutputCompare(192-pwm_value);
+  last_samp = *data;
+  update_count++;
 }
