@@ -21,12 +21,15 @@
 #include <stdint.h>
 #include "py32f0xx.h"
 
-#define RS485_ADDR  (0xAC)
+//编码后的RS485地址
+#define RS485_ADDR1  (0xA6)
+#define RS485_ADDR2  (0xAA)
 
 typedef enum{
   RS485_On_IdleORMute,
   RS485_On_Trasmit,
   RS485_On_Recevice,
+  RS485_On_Addr1,
 }RS485_StatusType;
 
 void RS485_Init();

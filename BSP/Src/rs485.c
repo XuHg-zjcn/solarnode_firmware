@@ -151,7 +151,7 @@ void USART1_IRQHandler()
 {
   if(LL_USART_IsActiveFlag_RXNE(USARTx)){
     uint8_t byte = LL_USART_ReceiveData8(USARTx);
-    if((rs485_stat == RS485_On_IdleORMute) && (byte == RS485_ADDR) && (buff_rxlen == 0)){
+    if((rs485_stat == RS485_On_Addr1) && (byte == RS485_ADDR2) && (buff_rxlen == 0)){
       rs485_stat = RS485_On_Recevice;
       LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_RX);
       LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_RX, sizeof(buff_rx));
@@ -159,7 +159,10 @@ void USART1_IRQHandler()
       LL_USART_EnableDMAReq_RX(USARTx);
       LL_USART_DisableIT_RXNE(USARTx);
       LL_USART_EnableIT_IDLE(USARTx);
+    }else if((rs485_stat == RS485_On_IdleORMute) && (byte == RS485_ADDR1)){
+      rs485_stat = RS485_On_Addr1;
     }else{
+      rs485_stat = RS485_On_IdleORMute;
       LL_USART_RequestEnterMuteMode(USARTx);
     }
   }
