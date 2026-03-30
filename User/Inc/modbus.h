@@ -11,6 +11,7 @@
 #define MB_WRITE_RHOLD_SINGL  0x06
 #define MB_WRITE_COIL_MULTI   0x0F
 #define MB_WRITE_RHOLD_MULTI  0x10
+#define MB_ENTRY_BOOTLOADER   0x64
 
 #define MB_ERR_ILL_FUNC       -1
 #define MB_ERR_ILL_ADDR       -2
