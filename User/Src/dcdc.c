@@ -19,6 +19,7 @@
 #include "adc.h"
 #include "pi_controll.h"
 #include "mos_pwm.h"
+#include "py32f0xx_hal.h"
 
 static DCDC_Mode_t mode; //目前只支持CV（恒压）
 static DCDC_Param_t param;
@@ -61,29 +62,36 @@ void DCDC_Soft_Start()
 
 void DCDC_ADC_update_callback(ADCSamp_t *data)
 {
-  uint16_t pwm_value;
+  int32_t pwm_value = -1;
   if((data->vbus > param.v_prot) || (data->ibus > param.i_prot)){
     mode = DCDC_Mode_Stop;
-  }
-  if((mode == DCDC_Mode_CC) && (data->ibus < param.cc_targ) && (data->vbus > param.cv_targ)){
-    mode = DCDC_Mode_CV;
-    uint32_t old_pwm = MOSPWM_GetOutputCompare();
-    PI_set_s(&pi_cv, data->vbus, old_pwm);
-  }else if((mode == DCDC_Mode_CV) && (data->ibus > param.cc_targ) && (data->vbus < param.cv_targ)){
-    mode = DCDC_Mode_CC;
-    uint32_t old_pwm = MOSPWM_GetOutputCompare();
-    PI_set_s(&pi_cc, data->ibus, old_pwm);
-  }
-  if(mode == DCDC_Mode_CV){
-    pwm_value = PI_update(&pi_cv, data->vbus);
+  }else if(mode == DCDC_Mode_CV){
+    if((data->ibus > param.cc_targ) && (data->vbus < param.cv_targ)){
+      mode = DCDC_Mode_CC;
+      uint32_t old_pwm = MOSPWM_GetOutputCompare();
+      PI_set_s(&pi_cc, data->ibus, old_pwm);
+    }else{
+      pwm_value = PI_update(&pi_cv, data->vbus);
+    }
   }else if(mode == DCDC_Mode_CC){
-    pwm_value = PI_update(&pi_cc, data->ibus);
+    if((data->ibus < param.cc_targ) && (data->vbus > param.cv_targ)){
+      mode = DCDC_Mode_CV;
+      uint32_t old_pwm = MOSPWM_GetOutputCompare();
+      PI_set_s(&pi_cv, data->vbus, old_pwm);
+    }else{
+      pwm_value = PI_update(&pi_cc, data->ibus);
+    }
   }else if(mode == DCDC_Mode_MPPT){
     pwm_value = 0;
   }else{
     pwm_value = 0;
   }
-  MOSPWM_SetOutputCompare(192-pwm_value);
-  last_samp = *data;
+  if(pwm_value >= 0){
+    MOSPWM_SetOutputCompare(192-pwm_value);
+  }
+  last_samp.vbus = data->vbus;
+  last_samp.ibus = data->ibus;
+  last_samp.vslr = data->vslr;
+  last_samp.islr = data->vslr;
   update_count++;
 }

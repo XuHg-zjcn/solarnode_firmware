@@ -68,7 +68,7 @@ int main(void)
   ADC_Init();
   DCDC_Init();
   MOSPWM_Start();
-  DCDC_Soft_Start();
+  //DCDC_Soft_Start();
   while (1)
   {
     while(buff_rxlen == 0);

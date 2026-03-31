@@ -54,10 +54,6 @@
 #include "dcdc.h"
 
 uint16_t adc_buff[ADC_BUFFSIZE];
-uint16_t adc_vbus = 0;
-uint16_t adc_ibus = 0;
-uint16_t adc_vslr = 0;
-uint16_t adc_islr = 0;
 
 /**
   * @brief  ADC configuration function
@@ -252,14 +248,4 @@ void ADC_Init()
   ADC_AdcEnable();
   ADC_TimerInit();
   LL_ADC_REG_StartConversion(ADC1);
-}
-
-void ADC_DMA_TC_Callback()
-{
-  DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[4]));
-}
-
-void ADC_DMA_HT_Callback()
-{
-  DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[0]));
 }

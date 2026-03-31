@@ -47,7 +47,5 @@ typedef struct{
 }ADCSamp_t;
 
 void ADC_Init();
-void ADC_DMA_TC_Callback();
-void ADC_DMA_HT_Callback();
 
 #endif

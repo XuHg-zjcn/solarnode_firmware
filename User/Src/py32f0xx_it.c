@@ -37,12 +37,14 @@
 #include "py32f0xx_ll_exti.h"
 #include "rs485.h"
 #include "adc.h"
+#include "dcdc.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern uint16_t adc_buff[ADC_BUFFSIZE];
 /* Private function prototypes -----------------------------------------------*/
 /* Private user code ---------------------------------------------------------*/
 /* External variables --------------------------------------------------------*/
@@ -115,11 +117,11 @@ void DMA1_Channel2_3_IRQHandler(void)
   }
   if(LL_DMA_IsActiveFlag_TC3(DMA1)){
     LL_DMA_ClearFlag_TC3(DMA1);
-    ADC_DMA_TC_Callback();
+    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[4]));
   }
   if(LL_DMA_IsActiveFlag_HT3(DMA1)){
     LL_DMA_ClearFlag_HT3(DMA1);
-    ADC_DMA_HT_Callback();
+    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[0]));
   }
 }
 

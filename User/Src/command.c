@@ -19,22 +19,23 @@
 #include <stdint.h>
 #include <string.h>
 #include "modbus.h"
+#include "adc.h"
 
 uint8_t resp_buff[MAXSIZE_RESP];
-extern uint16_t adc_vbus, adc_ibus, adc_vslr, adc_islr;
+extern volatile ADCSamp_t last_samp;
 
 
 int MB_ReadInputCB_single(uint16_t addr)
 {
   switch(addr){
   case 0x0010:
-    return adc_vbus;
+    return last_samp.vbus;
   case 0x0011:
-    return adc_ibus;
+    return last_samp.ibus;
   case 0x0012:
-    return adc_vslr;
+    return last_samp.vslr;
   case 0x0013:
-    return adc_islr;
+    return last_samp.islr;
   default:
     return MB_ERR_ILL_ADDR;
   }
