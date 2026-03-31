@@ -24,9 +24,10 @@ import crc
 calc = crc.Calculator(crc.Crc16.MODBUS)
 s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.1)
 
-# 待修改相关代码，此处不符合Modbus标准，CRC计算应该包含设备地址
-pdu = b'\x04\x00\x01\x00\x02'
-checksum = calc.checksum(pdu).to_bytes(2, 'little')
-s.write(b'\x02' + pdu + checksum)
+addr = b'\x02'
+pdu = b'\x04\x00\x10\x00\x04'
+pack = addr + pdu
+pack += calc.checksum(pack).to_bytes(2, 'little')
+s.write(pack)
 
-print(s.read(10))
+print(s.read(256))

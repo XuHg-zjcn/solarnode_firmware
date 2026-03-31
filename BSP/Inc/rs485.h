@@ -20,8 +20,10 @@
 
 #include <stdint.h>
 #include "py32f0xx.h"
+#include "manchester.h"
 
 //编码后的RS485地址
+#define RS485_ADDR   (0x02)
 #define RS485_ADDR1  (0xA6)
 #define RS485_ADDR2  (0xAA)
 
