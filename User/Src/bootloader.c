@@ -1,9 +1,12 @@
 #include "bootloader.h"
 #include <stdint.h>
+#include <string.h>
 #include "py32f0xx_ll_rcc.h"
 #include "py32f0xx_ll_bus.h"
 
-#define ADDR_BL (0x0800f000)
+#define ADDR_BL (0x08000000)
+
+extern const char EntryBootloaderMagic[16] __attribute__((aligned(4)));
 
 void GoBootloader()
 {
@@ -24,6 +27,8 @@ void GoBootloader()
   NVIC->ICER[0] = 0xffffffff;
   NVIC->ICPR[0] = 0xffffffff;
   SCB->VTOR = ADDR_BL;
+  //测试发现4字节对齐下，编译器能优化成ldmia和stmia，更节省ROM
+  memcpy((void *)(0x20000000), EntryBootloaderMagic, 16);
   uint32_t new_sp = *((uint32_t *)(ADDR_BL));
   uint32_t new_pc = *((uint32_t *)(ADDR_BL+4));
   __enable_irq();

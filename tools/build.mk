@@ -1,6 +1,6 @@
 ##########################################################################
-# 根目录下的Makefile
-# Copyright (C) 2021-2022  Xu Ruijun
+# 编译和链接程序
+# Copyright (C) 2022-2024  Xu Ruijun
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,29 +16,36 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ##########################################################################
 
-TOP_DIR = .
-DEV_DIR = PY32F0xx
-COM_DIR = common
-TOOL_DIR = $(TOP_DIR)/tools
-MODEL_D = PY32F003x8
-INCS += -I $(TOP_DIR)/BSP/Inc/
-SDIR += $(TOP_DIR)/BSP/Src/
-#COMFLAGS += -DUSE_FULL_LL_DRIVER
-
-sinclude $(TOOL_DIR)/conf.mk
-
-all: $(TARGET).hex $(TARGET).bin
-
-sinclude $(TOOL_DIR)/build.mk
-sinclude $(TOOL_DIR)/mcu.mk
+sinclude $(TOOL_DIR)/inc.mk
+sinclude $(TOOL_DIR)/src.mk
 
 
-# clean output dir 'obj/*', keep symbol link in top dir
-clean:
-	@rm -f $(TARGET)*
-	@for file in $(OBJODIR)/*; \
-	do \
-		if [ ! -L $$file ]; then \
-			rm -rf $$file; \
-		fi \
-	done
+CSRC += $(shell find $(SDIR) -name '*.c')
+CXXSRC += $(shell find $(SDIR) -name '*.cpp')
+ASRC += $(shell find $(SDIR) -iname '*.s')
+
+OBJF = $(CSRC:%.c=obj/%.o) \
+       $(CXXSRC:%.cpp=obj/%.o) \
+       $(ASRC:%.S=obj/%.o)
+
+
+obj/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CCFLAGS) $(INCS) -c -o "$@" "$<"
+
+obj/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) $(INCS) -c -o "$@" "$<"
+
+obj/%.o: %.s
+	@mkdir -p $(dir $@)
+	$(ASM) $(ASMFLAGS) $(INCS) -c -o "$@" "$<"
+
+$(TARGET).elf: $(OBJF)
+	$(LINK) $(LDFLAGS) -o "$@" $^
+
+$(TARGET).hex: $(TARGET).elf
+	$(OBJCOPY) -O ihex "$<" "$@"
+
+$(TARGET).bin: $(TARGET).elf
+	$(OBJCOPY) -O binary "$<" "$@"

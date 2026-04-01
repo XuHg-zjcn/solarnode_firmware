@@ -3,7 +3,7 @@
 #include <string.h>
 #include "bootloader.h"
 
-const char EntryBootloaderMagic[] = {'E', 'n', 't', 'r', 'y', 'B', 'o', 'o', 't', 'l', 'o', 'a', 'd', 'e', 'r'};
+const char EntryBootloaderMagic[16] __attribute__((aligned(4))) = "EntryBootloader";
 
 #define __weak __attribute__((weak))
 

@@ -25,7 +25,7 @@ calc = crc.Calculator(crc.Crc16.MODBUS)
 s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.1)
 
 addr = b'\x02'
-pdu = b'\x64EntryBootloader'
+pdu = b'\x64EntryBootloader\0'
 pack = addr + pdu
 pack += calc.checksum(pack).to_bytes(2, 'little')
 s.write(pack)
