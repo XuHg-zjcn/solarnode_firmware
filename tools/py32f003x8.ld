@@ -151,8 +151,9 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >RAM AT> FLASH
+ 
+  program_end = _edata-_sdata+_sidata;
 
-  
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss :

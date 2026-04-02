@@ -49,3 +49,4 @@ $(TARGET).hex: $(TARGET).elf
 
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary "$<" "$@"
+	$(TOOL_DIR)/append_checksum.py "$@"
