@@ -36,6 +36,7 @@ typedef struct{
 }DCDC_Param_t;
 
 void DCDC_Init();
+void DCDC_Soft_Start();
 void DCDC_ADC_update_callback(ADCSamp_t *data);
 
 #endif

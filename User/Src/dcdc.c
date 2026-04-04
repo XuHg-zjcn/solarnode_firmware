@@ -44,6 +44,11 @@ void DCDC_Init()
   pi_cc.target = 0;
   pi_cc.out_max = 100;
   pi_cc.s = 0;
+
+  param.cv_targ = 800;
+  param.cc_targ = 300;
+  param.v_prot = 1000;
+  param.i_prot = 500;
 }
 
 void DCDC_Soft_Start()
@@ -51,7 +56,10 @@ void DCDC_Soft_Start()
   mode = DCDC_Mode_Stop;
   uint32_t c0 = update_count;
   HAL_Delay(10);
-  while(update_count != c0);
+  if(update_count == c0){
+    //等了10ms了，还没有更新ADC数据，失败
+    return;
+  }
   pi_cv.target = last_samp.vbus;
   mode = DCDC_Mode_CV;
   while(pi_cv.target < param.cv_targ){
