@@ -19,10 +19,10 @@
 # 使用本程序需要py32_rs485_convert转换模块，进行UART与编码RS485转换
 import serial
 import crc
-
+import struct
 
 calc = crc.Calculator(crc.Crc16.MODBUS)
-s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.1)
+s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.5)
 
 addr = b'\x02'
 pdu = b'\x04\x00\x10\x00\x04'
@@ -30,4 +30,15 @@ pack = addr + pdu
 pack += calc.checksum(pack).to_bytes(2, 'little')
 s.write(pack)
 
-print(s.read(256))
+pack_r = s.read(13)
+print(pack_r)
+if len(pack_r) != 13:
+    print('length mistack')
+elif pack_r[:3] != b'\x02\x04\x08':
+    print('head mistack')
+elif calc.checksum(pack[:-2]).to_bytes(2, 'little') != pack[-2:]:
+    print('crc mistack')
+else:
+    data = pack_r[3:3+2*4]
+    vslr,islr,vbus,ibus = struct.unpack('>HHHH', data)
+    print(vslr, islr, vbus, ibus)
