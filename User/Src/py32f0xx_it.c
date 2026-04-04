@@ -101,6 +101,7 @@ void SysTick_Handler(void)
 {
 }*/
 
+//TODO: 调整DMA通道使用，ADC移动到Channel1独占一个中断函数
 void DMA1_Channel1_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC1(DMA1)){

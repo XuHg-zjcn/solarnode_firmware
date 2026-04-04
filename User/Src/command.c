@@ -22,20 +22,20 @@
 #include "adc.h"
 
 uint8_t resp_buff[MAXSIZE_RESP];
-extern volatile ADCSamp_t last_samp;
+extern uint16_t adc_buff[ADC_BUFFSIZE];
 
 
 int MB_ReadInputCB_single(uint16_t addr)
 {
   switch(addr){
   case 0x0010:
-    return last_samp.vbus;
+    return (adc_buff[0]+adc_buff[4])/2;
   case 0x0011:
-    return last_samp.ibus;
+    return (adc_buff[1]+adc_buff[5])/2;
   case 0x0012:
-    return last_samp.vslr;
+    return (adc_buff[2]+adc_buff[6])/2;
   case 0x0013:
-    return last_samp.islr;
+    return (adc_buff[3]+adc_buff[7])/2;
   default:
     return MB_ERR_ILL_ADDR;
   }

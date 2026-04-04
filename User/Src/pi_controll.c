@@ -22,17 +22,12 @@ uint32_t PI_update(PI_data *data, uint32_t curr)
 {
   int32_t err = data->target - curr;
   int32_t out = (((int32_t)data->s) >> 16) + (((int32_t)(err * data->k_p)) >> 16);
-  data->s += (((int32_t)(err * data->k_i)) >> 8);
-  if(data->s < 0){
-    data->s = 0;
-  }else if(data->s > (data->out_max << 16)){
-    data->s = (data->out_max << 16);
-  }
   if(out < 0){
     return 0;
   }else if(out > data->out_max){
     return data->out_max;
   }else{
+    data->s += (((int32_t)(err * data->k_i)) >> 8);
     return out;
   }
 }
