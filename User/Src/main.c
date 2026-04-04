@@ -68,9 +68,6 @@ int main(void)
   ADC_Init();
   DCDC_Init();
   MOSPWM_Start();
-  //TODO: 加电压检测功能
-  //Vbus和Vslr电压均过低时，可能处于调试状态
-  //不应该启动DCDC
   DCDC_Soft_Start();
   while (1)
   {

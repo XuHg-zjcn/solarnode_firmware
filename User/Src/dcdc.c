@@ -21,6 +21,8 @@
 #include "mos_pwm.h"
 #include "py32f0xx_hal.h"
 
+#define TH_LOW_VOLT_ADC  (256)
+
 static DCDC_Mode_t mode; //目前只支持CV（恒压）
 static DCDC_Param_t param;
 PI_data pi_cv;
@@ -60,6 +62,11 @@ void DCDC_Soft_Start()
     //等了10ms了，还没有更新ADC数据，失败
     return;
   }
+  if((last_samp.vbus < TH_LOW_VOLT_ADC) && (last_samp.vslr < TH_LOW_VOLT_ADC)){
+    //VBUS和VSLR电压都很低，MCU电源不是来自板载降压器，连接了其他电源用于调试
+    //或电压采样电路发生故障
+    return;
+  }
   pi_cv.target = last_samp.vbus;
   mode = DCDC_Mode_CV;
   while(pi_cv.target < param.cv_targ){
@@ -71,6 +78,8 @@ void DCDC_Soft_Start()
 void DCDC_ADC_update_callback(ADCSamp_t *data)
 {
   int32_t pwm_value = -1;
+  //TODO: STOP模式添加电压监控，从STOP模式启动
+  //VBUS持续供电MCU一直处于运行，但DCDC没有电源输入不运行，日出光伏板接受光照时需要自动启动
   if((data->vbus > param.v_prot) || (data->ibus > param.i_prot)){
     mode = DCDC_Mode_Stop;
   }else if(mode == DCDC_Mode_CV){
