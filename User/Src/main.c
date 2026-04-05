@@ -37,8 +37,13 @@
 #include "command.h"
 #include "dcdc.h"
 #include "py32f0xx_ll_adc.h"
+#include "py32f0xx_ll_bus.h"
+#include "py32f0xx_ll_gpio.h"
 
 /* Private define ------------------------------------------------------------*/
+#define TEST_EN         1
+#define TEST_GPIO_PORT  GPIOB
+#define TEST_GPIO_PIN   LL_GPIO_PIN_7
 /* Private variables ---------------------------------------------------------*/
 uint8_t buff_tx_encode[64];
 uint8_t buff_rx_decode[32];
@@ -69,9 +74,22 @@ int main(void)
   DCDC_Init();
   MOSPWM_Start();
   DCDC_Soft_Start();
+
+#if TEST_EN
+  /* Config Test Pin */
+  LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
+  LL_GPIO_SetPinMode(TEST_GPIO_PORT, TEST_GPIO_PIN, LL_GPIO_MODE_OUTPUT);
+  LL_GPIO_SetPinOutputType(TEST_GPIO_PORT, TEST_GPIO_PIN, LL_GPIO_OUTPUT_PUSHPULL);
+  LL_GPIO_SetPinSpeed(TEST_GPIO_PORT, TEST_GPIO_PIN, LL_GPIO_SPEED_FREQ_VERY_HIGH);
+  LL_GPIO_SetPinPull(TEST_GPIO_PORT, TEST_GPIO_PIN, LL_GPIO_PULL_NO);
+#endif
   while (1)
   {
-    while(buff_rxlen == 0);
+    while(buff_rxlen == 0){
+#if TEST_EN
+      LL_GPIO_TogglePin(TEST_GPIO_PORT, TEST_GPIO_PIN);
+#endif
+    }
     uint32_t rxlen = buff_rxlen;
     Manchester_decode(buff_rx+1, buff_rx_decode+1, rxlen/2);
     buff_rxlen = 0; //接收缓存区的内容不再使用了，可以接收新数据了
