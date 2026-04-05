@@ -21,6 +21,7 @@
 #include "py32f0xx_ll_tim.h"
 #include "py32f0xx.h"
 
+//TODO: 重构此文件，完全改用LL库
 #define PWM_GPIO_PORT	GPIOA
 #define PWM_GPIO_PIN	GPIO_PIN_0
 
@@ -97,14 +98,3 @@ int MOSPWM_IsEnable(int LEDx)
     return 0;
   }
 }
-
-void MOSPWM_SetOutputCompare(uint16_t compare)
-{
-  __HAL_TIM_SET_COMPARE(&htim_led, PWM_TIM_CHANNEL, compare);
-}
-
-uint32_t MOSPWM_GetOutputCompare()
-{
-  return __HAL_TIM_GET_COMPARE(&htim_led, PWM_TIM_CHANNEL);
-}
-

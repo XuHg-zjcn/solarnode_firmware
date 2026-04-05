@@ -19,13 +19,16 @@
 #define MOSPWM_H
 
 #include <stdint.h>
+#include "py32f0xx_ll_tim.h"
+
+#define TIM_MOSPWM                         TIM1
+#define MOSPWM_SetOutputCompare(compval)   LL_TIM_OC_SetCompareCH3(TIM_MOSPWM, (compval))
+#define MOSPWM_GetOutputCompare()          LL_TIM_OC_GetCompareCH3(TIM_MOSPWM)
 
 void     MOSPWM_PreInit();
 void     MOSPWM_Init();
 void     MOSPWM_Start();
 void     MOSPWM_Stop();
 int      MOSPWM_IsEnable();
-void     MOSPWM_SetOutputCompare(uint16_t compare);
-uint32_t MOSPWM_GetOutputCompare();
 
 #endif

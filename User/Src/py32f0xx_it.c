@@ -45,6 +45,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern uint16_t adc_buff[ADC_BUFFSIZE];
+extern __IO uint32_t uwTick;
 /* Private function prototypes -----------------------------------------------*/
 /* Private user code ---------------------------------------------------------*/
 /* External variables --------------------------------------------------------*/
@@ -88,7 +89,8 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-  HAL_IncTick();
+  uwTick += 1;
+  //HAL_IncTick();
 }
 
 /******************************************************************************/
