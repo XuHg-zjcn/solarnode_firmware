@@ -195,8 +195,8 @@ static void ADC_DmaConfig(void)
   /* Enable syscfg clock */
   LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
 
-  /* ADC corresponds to channel LL_DMA_CHANNEL_3 */
-  LL_SYSCFG_SetDMARemap_CH3(LL_SYSCFG_DMA_MAP_ADC);
+  /* ADC corresponds to channel LL_DMA_CHANNEL_1 */
+  LL_SYSCFG_SetDMARemap_CH1(LL_SYSCFG_DMA_MAP_ADC);
 
   /* Configure DMA data transfer direction as peripheral to memory */
   LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_ADC, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
@@ -232,8 +232,8 @@ static void ADC_DmaConfig(void)
   LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_ADC);
 
   //已经在其他代码中开启此中断
-  //NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0);
-  //NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+  NVIC_SetPriority(DMA1_Channel1_IRQn, 1);
+  NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
   /* DMA interrupt configuration */
   LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_ADC);

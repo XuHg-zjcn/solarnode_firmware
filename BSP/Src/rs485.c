@@ -35,8 +35,8 @@
 #define USARTx            USART1
 #define BAUDRATE          (500000)
 
-#define LL_DMA_CHANNEL_TX LL_DMA_CHANNEL_1
-#define LL_DMA_CHANNEL_RX LL_DMA_CHANNEL_2
+#define LL_DMA_CHANNEL_TX LL_DMA_CHANNEL_2
+#define LL_DMA_CHANNEL_RX LL_DMA_CHANNEL_3
 
 RS485_StatusType rs485_stat = RS485_On_IdleORMute;
 uint8_t buff_rx[64];     //接收缓存区
@@ -105,8 +105,8 @@ void RS485_Init()
 			LL_DMA_MEMORY_INCREMENT           |
 			LL_DMA_PDATAALIGN_BYTE            |
 			LL_DMA_MDATAALIGN_BYTE);
-  LL_SYSCFG_SetDMARemap_CH1(LL_SYSCFG_DMA_MAP_USART1_TX);
-  LL_SYSCFG_SetDMARemap_CH2(LL_SYSCFG_DMA_MAP_USART1_RX);
+  LL_SYSCFG_SetDMARemap_CH2(LL_SYSCFG_DMA_MAP_USART1_TX);
+  LL_SYSCFG_SetDMARemap_CH3(LL_SYSCFG_DMA_MAP_USART1_RX);
 
   LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_TX, LL_USART_DMA_GetRegAddr(USARTx));
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_TX);
@@ -115,9 +115,6 @@ void RS485_Init()
   LL_DMA_SetPeriphAddress(DMA1, LL_DMA_CHANNEL_RX, LL_USART_DMA_GetRegAddr(USARTx));
   LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_RX, sizeof(buff_rx));
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_RX);
-
-  NVIC_SetPriority(DMA1_Channel1_IRQn, 1);
-  NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
   NVIC_SetPriority(DMA1_Channel2_3_IRQn, 1);
   NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);

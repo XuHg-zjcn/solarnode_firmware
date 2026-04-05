@@ -101,12 +101,15 @@ void SysTick_Handler(void)
 {
 }*/
 
-//TODO: 调整DMA通道使用，ADC移动到Channel1独占一个中断函数
 void DMA1_Channel1_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC1(DMA1)){
     LL_DMA_ClearFlag_TC1(DMA1);
-    USART_TX_DMA_TC_Callback();
+    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[4]));
+  }
+  if(LL_DMA_IsActiveFlag_HT1(DMA1)){
+    LL_DMA_ClearFlag_HT1(DMA1);
+    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[0]));
   }
 }
 
@@ -114,15 +117,11 @@ void DMA1_Channel2_3_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC2(DMA1)){
     LL_DMA_ClearFlag_TC2(DMA1);
-    USART_RX_DMA_TC_Callback();
+    USART_TX_DMA_TC_Callback();
   }
   if(LL_DMA_IsActiveFlag_TC3(DMA1)){
     LL_DMA_ClearFlag_TC3(DMA1);
-    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[4]));
-  }
-  if(LL_DMA_IsActiveFlag_HT3(DMA1)){
-    LL_DMA_ClearFlag_HT3(DMA1);
-    DCDC_ADC_update_callback((ADCSamp_t *)(&adc_buff[0]));
+    USART_RX_DMA_TC_Callback();
   }
 }
 
