@@ -131,7 +131,7 @@ SECTIONS
   } >FLASH
 
   /* used by the startup to initialize data */
-    _sidata = LOADADDR(.data);
+    _sidata = LOADADDR(.fast_text_ram);
 
   .vect_data 0x20000000 :
   {
@@ -139,12 +139,18 @@ SECTIONS
     *(.vectable_sram)
   } >RAM AT> FLASH
 
+  /* some program code execute in RAM for good performance */
+  .fast_text_ram :
+  {
+    . = ALIGN(2);
+    _sdata = .;        /* create a global symbol at data start */
+    *(.fast_text_ram*)
+  } >RAM AT>FLASH
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data : 
   {
     . = ALIGN(4);
-    _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
 

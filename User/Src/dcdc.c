@@ -84,6 +84,7 @@ void DCDC_Soft_Start()
   }
 }
 
+__attribute__((section(".fast_text_ram")))
 void DCDC_ADC_update_callback(ADCSamp_t *data)
 {
   int32_t pwm_value = 0;

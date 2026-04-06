@@ -87,6 +87,7 @@ void PendSV_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
+__attribute__((section(".fast_text_ram")))
 void SysTick_Handler(void)
 {
   uwTick += 1;
@@ -103,6 +104,7 @@ void SysTick_Handler(void)
 {
 }*/
 
+__attribute__((section(".fast_text_ram")))
 void DMA1_Channel1_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC1(DMA1)){
@@ -115,6 +117,7 @@ void DMA1_Channel1_IRQHandler(void)
   }
 }
 
+__attribute__((section(".fast_text_ram")))
 void DMA1_Channel2_3_IRQHandler(void)
 {
   if(LL_DMA_IsActiveFlag_TC2(DMA1)){

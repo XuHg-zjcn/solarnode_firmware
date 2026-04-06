@@ -18,6 +18,7 @@
 #include "pi_controll.h"
 
 
+__attribute__((section(".fast_text_ram")))
 uint32_t PI_update(PI_data *data, uint32_t curr)
 {
   int32_t err = data->target - curr;
@@ -32,6 +33,7 @@ uint32_t PI_update(PI_data *data, uint32_t curr)
   }
 }
 
+__attribute__((section(".fast_text_ram")))
 uint32_t PI_set_s(PI_data *data, uint32_t curr, uint32_t out)
 {
   int32_t err = data->target - curr;

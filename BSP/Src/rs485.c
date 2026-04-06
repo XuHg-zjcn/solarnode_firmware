@@ -143,7 +143,7 @@ int RS485_Send(uint8_t *p, uint16_t size)
   return 0;
 }
 
-//TODO: 此处应该改为回调函数，中断函数在py32f0xx_it.c中定义
+__attribute__((section(".fast_text_ram")))
 void USART1_IRQHandler()
 {
   if(LL_USART_IsActiveFlag_RXNE(USARTx)){
@@ -173,6 +173,7 @@ void USART1_IRQHandler()
   }
 }
 
+__attribute__((section(".fast_text_ram")))
 void USART_TX_DMA_TC_Callback()
 {
   LL_USART_ClearFlag_TC(USARTx);
@@ -184,6 +185,7 @@ void USART_TX_DMA_TC_Callback()
   rs485_stat = RS485_On_IdleORMute;
 }
 
+__attribute__((section(".fast_text_ram")))
 void USART_RX_DMA_TC_Callback()
 {
   //接收缓存区已满
