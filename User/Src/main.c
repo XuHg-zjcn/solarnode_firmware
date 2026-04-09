@@ -41,7 +41,7 @@
 #include "py32f0xx_ll_gpio.h"
 
 /* Private define ------------------------------------------------------------*/
-#define TEST_EN         1
+#define TEST_EN         0       //测试发现开启会导致上电后只能接收一两条命令
 #define TEST_GPIO_PORT  GPIOB
 #define TEST_GPIO_PIN   LL_GPIO_PIN_7
 /* Private variables ---------------------------------------------------------*/
