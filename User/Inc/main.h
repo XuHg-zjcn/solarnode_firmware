@@ -42,6 +42,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
+#define TASK_UARTRX    (1U<<0U)
 /* Exported variables prototypes ---------------------------------------------*/
 /* Exported functions prototypes ---------------------------------------------*/
 void APP_ErrorHandler(void);

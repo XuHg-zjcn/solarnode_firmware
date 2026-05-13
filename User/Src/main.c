@@ -45,6 +45,7 @@
 #define TEST_GPIO_PORT  GPIOB
 #define TEST_GPIO_PIN   LL_GPIO_PIN_7
 /* Private variables ---------------------------------------------------------*/
+volatile uint32_t task_bits = 0;
 uint8_t buff_tx_encode[64];
 uint8_t buff_rx_decode[32];
 extern uint8_t buff_rx[64];
@@ -85,19 +86,22 @@ int main(void)
 #endif
   while (1)
   {
-    while(buff_rxlen == 0){
+    while(task_bits == 0){
 #if TEST_EN
       LL_GPIO_TogglePin(TEST_GPIO_PORT, TEST_GPIO_PIN);
 #endif
     }
-    uint32_t rxlen = buff_rxlen;
-    Manchester_decode(buff_rx+1, buff_rx_decode+1, rxlen/2);
-    buff_rxlen = 0; //接收缓存区的内容不再使用了，可以接收新数据了
-    buff_rx_decode[0] = RS485_ADDR;
-    uint32_t resp_len_ = process_cmd(buff_rx_decode, rxlen/2+1);
-    if(resp_len_ > 0){
-      Manchester_encode(resp_buff, buff_tx_encode, resp_len_);
-      RS485_Send(buff_tx_encode, resp_len_*2);
+    if(READ_BIT(task_bits, TASK_UARTRX)){
+      CLEAR_BIT(task_bits, TASK_UARTRX);
+      uint32_t rxlen = buff_rxlen;
+      Manchester_decode(buff_rx+1, buff_rx_decode+1, rxlen/2);
+      buff_rxlen = 0; //接收缓存区的内容不再使用了，可以接收新数据了
+      buff_rx_decode[0] = RS485_ADDR;
+      uint32_t resp_len_ = process_cmd(buff_rx_decode, rxlen/2+1);
+      if(resp_len_ > 0){
+        Manchester_encode(resp_buff, buff_tx_encode, resp_len_);
+	RS485_Send(buff_tx_encode, resp_len_*2);
+      }
     }
   }
 }

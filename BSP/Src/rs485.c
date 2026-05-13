@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
 #include "rs485.h"
+#include "main.h"
 #include "py32f0xx_ll_system.h"
 #include "py32f0xx_ll_bus.h"
 #include "py32f0xx_ll_gpio.h"
@@ -41,6 +42,7 @@
 RS485_StatusType rs485_stat = RS485_On_IdleORMute;
 uint8_t buff_rx[64];     //接收缓存区
 volatile uint32_t buff_rxlen = 0; //接收完成时存放接收长度,缓存区内容不再使用时置0
+extern volatile uint32_t task_bits;
 
 /******************************************
  * 参考代码:
@@ -168,6 +170,8 @@ void USART1_IRQHandler()
     LL_USART_DisableDMAReq_RX(USARTx);
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_RX);
     buff_rxlen = sizeof(buff_rx) - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_RX);
+    //TODO: 使用原子操作
+    SET_BIT(task_bits, TASK_UARTRX);
     rs485_stat = RS485_On_IdleORMute;
     LL_USART_EnableIT_RXNE(USARTx);
   }
@@ -192,6 +196,8 @@ void USART_RX_DMA_TC_Callback()
   LL_USART_DisableDMAReq_RX(USARTx);
   LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_RX);
   buff_rxlen = sizeof(buff_rx);
+  //TODO: 使用原子操作
+  SET_BIT(task_bits, TASK_UARTRX);
   rs485_stat = RS485_On_IdleORMute;
   LL_USART_RequestEnterMuteMode(USARTx);
   LL_USART_EnableIT_RXNE(USARTx);

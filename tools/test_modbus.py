@@ -55,3 +55,4 @@ while True:
     except CustomError as e:
         s.read(1000)  # 清空缓冲区
         print(e)
+    time.sleep(0.1)
