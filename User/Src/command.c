@@ -20,10 +20,11 @@
 #include <string.h>
 #include "modbus.h"
 #include "adc.h"
+#include "dcdc.h"
 
 uint8_t resp_buff[MAXSIZE_RESP];
 extern uint16_t adc_buff[ADC_BUFFSIZE];
-
+extern DCDC_Mode_t mode;
 
 int MB_ReadInputCB_single(uint16_t addr)
 {
@@ -36,6 +37,8 @@ int MB_ReadInputCB_single(uint16_t addr)
     return (adc_buff[2]+adc_buff[6])/2;
   case 0x0013:
     return (adc_buff[3]+adc_buff[7])/2;
+  case 0x0014:
+    return mode;
   default:
     return MB_ERR_ILL_ADDR;
   }

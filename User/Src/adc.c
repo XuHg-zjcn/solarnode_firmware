@@ -229,7 +229,8 @@ static void ADC_DmaConfig(void)
   LL_DMA_EnableIT_TC(DMA1, LL_DMA_CHANNEL_ADC);
 
   /* Enable DMA half transfer interrupt */
-  LL_DMA_EnableIT_HT(DMA1, LL_DMA_CHANNEL_ADC);
+  //关闭半传输中断减少CPU使用
+  LL_DMA_DisableIT_HT(DMA1, LL_DMA_CHANNEL_ADC);
 
   //已经在其他代码中开启此中断
   NVIC_SetPriority(DMA1_Channel1_IRQn, 1);

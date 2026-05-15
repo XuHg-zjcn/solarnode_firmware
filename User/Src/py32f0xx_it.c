@@ -46,6 +46,8 @@
 /* Private variables ---------------------------------------------------------*/
 extern uint16_t adc_buff[ADC_BUFFSIZE];
 extern __IO uint32_t uwTick;
+extern DCDC_Mode_t mode;
+extern volatile uint32_t task_bits;
 /* Private function prototypes -----------------------------------------------*/
 /* Private user code ---------------------------------------------------------*/
 /* External variables --------------------------------------------------------*/
@@ -92,6 +94,9 @@ void SysTick_Handler(void)
 {
   uwTick += 1;
   //HAL_IncTick();
+  //if((mode == DCDC_Mode_MPPT) && ((uwTick % 64) == 0)){
+    //SET_BIT(task_bits, TASK_MPPT);
+  //}
 }
 
 /******************************************************************************/

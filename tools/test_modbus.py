@@ -29,25 +29,25 @@ calc = crc.Calculator(crc.Crc16.MODBUS)
 s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.01)
 
 addr = b'\x02'
-pdu = b'\x04\x00\x10\x00\x04'
+pdu = b'\x04\x00\x10\x00\x05'
 pack = addr + pdu
 pack += calc.checksum(pack).to_bytes(2, 'little')
 
 def f():
     s.write(pack)
 
-    pack_r = s.read(13)
+    pack_r = s.read(15)
     #print(pack_r)
-    if len(pack_r) != 13:
+    if len(pack_r) != 15:
         raise CustomError(f"len {len(pack_r)}")
-    elif pack_r[:3] != b'\x02\x04\x08':
+    elif pack_r[:3] != b'\x02\x04\x0a':
         raise CustomError(f'head {pack_r[:3]}')
     elif calc.checksum(pack[:-2]).to_bytes(2, 'little') != pack[-2:]:
         raise CustomError('CRC Error')
     else:
-        data = pack_r[3:3+2*4]
-        vbus,ibus,islr,vslr = struct.unpack('>HHHH', data)
-        return vbus,ibus,islr,vslr
+        data = pack_r[3:3+2*5]
+        vbus,ibus,islr,vslr,m = struct.unpack('>HHHHH', data)
+        return vbus,ibus,islr,vslr,(ibus*vbus)//256,m
 
 while True:
     try:
@@ -55,4 +55,4 @@ while True:
     except CustomError as e:
         s.read(1000)  # 清空缓冲区
         print(e)
-    time.sleep(0.1)
+    time.sleep(0.01)

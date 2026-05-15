@@ -100,7 +100,7 @@ int main(void)
       uint32_t resp_len_ = process_cmd(buff_rx_decode, rxlen/2+1);
       if(resp_len_ > 0){
         Manchester_encode(resp_buff, buff_tx_encode, resp_len_);
-	RS485_Send(buff_tx_encode, resp_len_*2);
+        RS485_Send(buff_tx_encode, resp_len_*2);
       }
     }
   }

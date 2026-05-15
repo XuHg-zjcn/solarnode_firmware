@@ -19,48 +19,76 @@
 #include "adc.h"
 #include "pi_controll.h"
 #include "mos_pwm.h"
+#include <stdlib.h>
 #include "py32f0xx_hal.h"
 
 #define PROT_EN  0
 #define CV_EN    1
 #define CC_EN    0
-#define MPPT_EN  0
+#define MPPT_EN  1
 
 #define TH_LOW_VOLT_ADC  (256)
 
-static DCDC_Mode_t mode; //目前只支持CV（恒压）
-static DCDC_Param_t param;
-PI_data pi_cv;
-PI_data pi_cc;
+DCDC_Mode_t mode; //目前只支持CV（恒压）
+static DCDC_Param_t param = {
+	.cv_targ = 800,
+	.cc_targ = 300,
+	.v_prot = 1000,
+	.i_prot = 500,
+};
+// 22/(470+22)/3.3*4096 = 55.5
+// 以下数据通过多次实验调整得到
+PI_data pi_cv = {
+  .k_p = 3000,  // k_p / 55.5 * 192 * 2**16
+  .k_i = 50,    // k_i / 55.5 * 192 * 2**24
+  .target = 0,  // 55.5 * vout
+  .out_max = 100, // maxduty * 192
+  .s = 0,
+};
+PI_data pi_cc = {
+  .k_p = 1000,
+  .k_i = 10,
+  .target = 0,
+  .out_max = 100,
+  .s = 0,
+};
+PI_data pi_mppt = {
+  .k_p = 3000,
+  .k_i = 50,
+  .target = 0,
+  .out_max = 100,
+  .s = 0,
+};
 volatile uint32_t update_count = 0;
+uint32_t slr_pvdown_cont = 0; //用于恒流或恒压模式下偏差过大计数
 extern uint16_t adc_buff[ADC_BUFFSIZE];
+int32_t mppt_step = 10;
+uint32_t mppt_pout_prev;
 
 void DCDC_Init()
 {
   mode = DCDC_Mode_Stop;
-  // 22/(470+22)/3.3*4096 = 55.5
-  // 以下数据通过多次实验调整得到
+}
+
 #if CV_EN
-  pi_cv.k_p = 3000;  // k_p / 55.5 * 192 * 2**16
-  pi_cv.k_i = 50;    // k_i / 55.5 * 192 * 2**24
-  pi_cv.target = 0; // 55.5 * vout
-  pi_cv.out_max = 100; // maxduty * 192
-  pi_cv.s = 0;
+static uint32_t DCDC_Entry_CV_Mode(uint16_t vbus)
+{
+  mode = DCDC_Mode_CV;
+  uint32_t old_pwm = MOSPWM_GetOutputCompare();
+  PI_set_s(&pi_cv, vbus, 192-old_pwm);
+  return old_pwm;
+}
 #endif
 
 #if CC_EN
-  pi_cc.k_p = 1000;
-  pi_cc.k_i = 10;
-  pi_cc.target = 0;
-  pi_cc.out_max = 100;
-  pi_cc.s = 0;
-#endif
-
-  param.cv_targ = 800;
-  param.cc_targ = 300;
-  param.v_prot = 1000;
-  param.i_prot = 500;
+static uint32_t DCDC_Entry_CC_Mode(uint16_t ibus)
+{
+  mode = DCDC_Mode_CC;
+  uint32_t old_pwm = MOSPWM_GetOutputCompare();
+  PI_set_s(&pi_cc, ibus, 192-old_pwm);
+  return old_pwm;
 }
+#endif
 
 void DCDC_Soft_Start()
 {
@@ -84,6 +112,24 @@ void DCDC_Soft_Start()
   }
 }
 
+#if MPPT_EN
+static void MPPT_Update()
+{
+  if(labs(((adc_buff[3]+adc_buff[7])/2) - pi_mppt.target) > 5){
+    return;
+  }
+  uint32_t power = ((adc_buff[0]+adc_buff[4])*(adc_buff[1]+adc_buff[5]));
+  if(power < 1000){
+    DCDC_Entry_CV_Mode((adc_buff[0]+adc_buff[4])/2);
+  }
+  if(power < mppt_pout_prev){
+    mppt_step = -mppt_step;
+  }
+  pi_mppt.target += mppt_step;
+  mppt_pout_prev = power;
+}
+#endif
+
 __attribute__((section(".fast_text_ram")))
 void DCDC_ADC_update_callback(ADCSamp_t *data)
 {
@@ -99,16 +145,13 @@ void DCDC_ADC_update_callback(ADCSamp_t *data)
 #if CV_EN
   if(mode == DCDC_Mode_CV){
 #if CC_EN
-    if((data->ibus > param.cc_targ) && (data->vbus < param.cv_targ)){
-      mode = DCDC_Mode_CC;
-      uint32_t old_pwm = MOSPWM_GetOutputCompare();
-      PI_set_s(&pi_cc, data->ibus, old_pwm);
-      pwm_value = old_pwm;
+    if(data->ibus > param.cc_targ){
+      pwm_value = DCDC_Entry_CC_Mode(data->ibus);
     }else{
-      pwm_value = PI_update(&pi_cv, data->vbus);
+      pwm_value = 192-PI_update(&pi_cv, data->vbus);
     }
 #else
-    pwm_value = PI_update(&pi_cv, data->vbus);
+    pwm_value = 192-PI_update(&pi_cv, data->vbus);
 #endif
   }else
 #endif
@@ -116,23 +159,66 @@ void DCDC_ADC_update_callback(ADCSamp_t *data)
 #if CC_EN
   if(mode == DCDC_Mode_CC){
 #if CV_EN
-    if((data->ibus < param.cc_targ) && (data->vbus > param.cv_targ)){
-      mode = DCDC_Mode_CV;
-      uint32_t old_pwm = MOSPWM_GetOutputCompare();
-      PI_set_s(&pi_cv, data->vbus, old_pwm);
-      pwm_value = old_pwm;
+    if(data->vbus > param.cv_targ){
+      pwm_value = DCDC_Entry_CV_Mode(data->vbus);
     }else{
-      pwm_value = PI_update(&pi_cc, data->ibus);
+      pwm_value = 192-PI_update(&pi_cc, data->ibus);
     }
 #else
-    pwm_value = PI_update(&pi_cc, data->ibus);
+    pwm_value = 192-PI_update(&pi_cc, data->ibus);
 #endif
   }else
 #endif
 
+#if MPPT_EN
+  if(mode == DCDC_Mode_MPPT){
+#if CC_EN
+    if(data->ibus > param.cc_targ){
+      DCDC_Entry_CC_Mode(data->ibus);
+    }else
+#endif
+#if CV_EN
+    if(data->vbus > param.cv_targ){
+      DCDC_Entry_CV_Mode(data->vbus);
+    }else
+#endif
+    {
+      pwm_value = 92+PI_update(&pi_mppt, data->vslr);
+    }
+  }else
+#endif
+
   {
-  //  pwm_value = 0;
+    pwm_value = 192;
   }
-  MOSPWM_SetOutputCompare(192-pwm_value);
+  MOSPWM_SetOutputCompare(pwm_value);
   update_count++;
+#if MPPT_EN
+  //观测到光伏板的电压和功率同时下降，需要进入MPPT模式
+  if(mode != DCDC_Mode_MPPT){
+    if((
+#if CV_EN
+       ((mode == DCDC_Mode_CV) && (data->vbus < pi_cv.target - 10)) ||
+#endif
+#if CC_EN
+       ((mode == DCDC_Mode_CC) && (data->ibus < pi_cc.target - 10)) ||
+#endif
+       (0)) && ((data->ibus*data->vbus) > 1000)){
+      slr_pvdown_cont++;
+      if(slr_pvdown_cont > 50){
+	pi_mppt.target = data->vslr;
+        uint32_t old_pwm = MOSPWM_GetOutputCompare();
+        PI_set_s(&pi_mppt, data->vslr, old_pwm-92);
+        mode = DCDC_Mode_MPPT;
+        slr_pvdown_cont=0;
+      }
+    }else{
+      slr_pvdown_cont=0;
+    }
+  }
+
+  if((mode == DCDC_Mode_MPPT) && ((update_count % 1024) == 0)){
+     MPPT_Update();
+  }
+#endif
 }
