@@ -71,7 +71,7 @@ void DCDC_Soft_Start()
     //等了10ms了，还没有更新ADC数据，失败
     return;
   }
-  if((adc_buff[0] < TH_LOW_VOLT_ADC) && (adc_buff[2] < TH_LOW_VOLT_ADC)){
+  if((adc_buff[0] < TH_LOW_VOLT_ADC) && (adc_buff[3] < TH_LOW_VOLT_ADC)){
     //VBUS和VSLR电压都很低，MCU电源不是来自板载降压器，连接了其他电源用于调试
     //或电压采样电路发生故障
     return;

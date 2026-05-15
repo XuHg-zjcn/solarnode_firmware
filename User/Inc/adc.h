@@ -42,8 +42,8 @@
 typedef struct{
   uint16_t vbus;
   uint16_t ibus;
-  uint16_t vslr;
   uint16_t islr;
+  uint16_t vslr;
 }ADCSamp_t;
 
 void ADC_Init();
